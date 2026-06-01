@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, WriteOnlyMapped, mapped_column, relationship
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
 
@@ -15,6 +16,16 @@ class User(db.Model):  # ty: ignore
 
     def __repr__(self):
         return f"User {self.username}"
+
+    def set_password(self, password) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password) -> bool:
+
+        if self.password_hash is None:
+            return False
+
+        return check_password_hash(self.password_hash, password)
 
 
 class Post(db.Model):  # ty: ignore
