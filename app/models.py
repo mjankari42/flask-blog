@@ -15,6 +15,10 @@ class User(UserMixin, db.Model):  # ty: ignore
     email: Mapped[str] = mapped_column(String(120), index=True, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(256))
     posts: WriteOnlyMapped[Post] = relationship(back_populates="author")
+    about_me: Mapped[str | None] = mapped_column(String(140))
+    last_seen: Mapped[datetime | None] = mapped_column(
+        default=lambda: datetime.now(UTC)
+    )
 
     def __repr__(self):
         return f"User {self.username}"
