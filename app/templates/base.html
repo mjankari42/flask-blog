@@ -17,6 +17,7 @@
         {% else %}
         <li><a href="{{ url_for('logout') }}">Logout</a></li>
         {% endif %}
+        <li>New User? <a href="{{ url_for('register') }}"> Click to Register!</a></li>
     </ul></nav>
     <hr>
     {% with messages = get_flashed_messages() %}
