@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from hashlib import md5
 
 from flask_login import UserMixin
 from sqlalchemy import ForeignKey, String
@@ -27,6 +28,10 @@ class User(UserMixin, db.Model):  # ty: ignore
             return False
 
         return check_password_hash(self.password_hash, password)
+
+    def avatar(self, size: int):
+        digest = md5(self.email.lower().encode("utf-8")).hexdigest()
+        return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}"
 
 
 class Post(db.Model):  # ty: ignore
