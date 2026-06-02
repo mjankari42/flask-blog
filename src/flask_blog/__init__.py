@@ -52,4 +52,4 @@ if not app.debug:
     app.logger.info("Blog startup")
 
 
-from app import errors, models, routes  # noqa: E402, F401
+from flask_blog import errors, models, routes  # noqa: E402, F401

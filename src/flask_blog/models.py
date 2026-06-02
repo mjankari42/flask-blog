@@ -6,7 +6,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Table, func, or_, se
 from sqlalchemy.orm import Mapped, WriteOnlyMapped, aliased, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db, login
+from flask_blog import db, login
 
 followers = Table(
     "followers",
