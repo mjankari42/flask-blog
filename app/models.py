@@ -2,11 +2,18 @@ from datetime import UTC, datetime
 from hashlib import md5
 
 from flask_login import UserMixin
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, func, select
 from sqlalchemy.orm import Mapped, WriteOnlyMapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login
+
+followers = Table(
+    "followers",
+    db.metadata,
+    Column("follower_id", Integer, ForeignKey("user.id"), primary_key=True),
+    Column("followed_id", Integer, ForeignKey("user.id"), primary_key=True),
+)
 
 
 class User(UserMixin, db.Model):  # ty: ignore
@@ -18,6 +25,18 @@ class User(UserMixin, db.Model):  # ty: ignore
     about_me: Mapped[str | None] = mapped_column(String(140))
     last_seen: Mapped[datetime | None] = mapped_column(
         default=lambda: datetime.now(UTC)
+    )
+    following: WriteOnlyMapped[User] = relationship(
+        secondary=followers,
+        primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.followed_id == id),
+        back_populates="followers",
+    )
+    followers: WriteOnlyMapped[User] = relationship(
+        secondary=followers,
+        primaryjoin=(followers.c.followed_id == id),
+        secondaryjoin=(followers.c.follower_id == id),
+        back_populates="following",
     )
 
     def __repr__(self):
@@ -36,6 +55,26 @@ class User(UserMixin, db.Model):  # ty: ignore
     def avatar(self, size: int):
         digest = md5(self.email.lower().encode("utf-8")).hexdigest()
         return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}"
+
+    def follow(self, user):
+        if not self.is_following(user):
+            self.following.add(user)
+
+    def unfollow(self, user):
+        if self.is_following(user):
+            self.following.remove(user)
+
+    def is_following(self, user):
+        query = self.following.select().where(User.id == user.id)
+        return db.session.scalar(query) is not None
+
+    def followers_count(self):
+        query = select(func.count()).select_from(self.followers.select().subquery())
+        return db.session.scalar(query)
+
+    def following_count(self):
+        query = select(func.count()).select_from(self.following.select().subquery())
+        return db.session.scalar(query)
 
 
 class Post(db.Model):  # ty: ignore
