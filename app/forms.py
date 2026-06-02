@@ -3,8 +3,8 @@ from sqlalchemy import select
 from wtforms import BooleanField, PasswordField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
-from flask_blog import db
-from flask_blog.models import User
+from app import db
+from app.models import User
 
 
 class LoginForm(FlaskForm):
