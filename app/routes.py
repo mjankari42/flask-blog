@@ -13,7 +13,6 @@ from app.models import User
 @app.route("/index")
 @login_required
 def index():
-    user = {"username": "Mahdi"}
     posts = [
         {"author": {"username": "Bob"}, "body": "What does six seven even mean?"},
         {
@@ -21,7 +20,7 @@ def index():
             "body": "six seven, six seven, six seven, six seven, ...",
         },
     ]
-    return render_template("index.html", title="Home", user=user, posts=posts)
+    return render_template("index.html", title="Home", posts=posts)
 
 
 @app.route("/login", methods=["GET", "POST"])
