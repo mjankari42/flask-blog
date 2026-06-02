@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 from hashlib import md5
 
 from flask_login import UserMixin
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, func, select
-from sqlalchemy.orm import Mapped, WriteOnlyMapped, mapped_column, relationship
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, func, or_, select
+from sqlalchemy.orm import Mapped, WriteOnlyMapped, aliased, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login
@@ -75,6 +75,24 @@ class User(UserMixin, db.Model):  # ty: ignore
     def following_count(self):
         query = select(func.count()).select_from(self.following.select().subquery())
         return db.session.scalar(query)
+
+    def following_posts(self):
+        Author = aliased(User)
+        Follower = aliased(User)
+
+        return (
+            select(Post)
+            .join(Post.author.of_type(Author))
+            .join(Author.followers.of_type(Follower), isouter=True)
+            .where(
+                or_(
+                    Follower.id == self.id,
+                    Author.id == self.id,
+                )
+            )
+            .group_by(Post.id)
+            .order_by(Post.timestamp.desc())
+        )
 
 
 class Post(db.Model):  # ty: ignore
