@@ -6,22 +6,26 @@ from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import select
 
 from app import app, db
-from app.forms import EditProfileForm, EmptyForm, LoginForm, RegistrationForm
-from app.models import User
+from app.forms import EditProfileForm, EmptyForm, LoginForm, PostForm, RegistrationForm
+from app.models import Post, User
 
 
-@app.route("/")
-@app.route("/index")
+@app.route("/", methods=["GET", "POST"])
+@app.route("/index", methods=["GET", "POST"])
 @login_required
 def index():
-    posts = [
-        {"author": {"username": "Bob"}, "body": "What does six seven even mean?"},
-        {
-            "author": {"username": "Kid"},
-            "body": "six seven, six seven, six seven, six seven, ...",
-        },
-    ]
-    return render_template("index.html", title="Home", posts=posts)
+    form = PostForm()
+
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Your post is now live!")
+        return redirect(url_for("index"))
+
+    posts = db.session.scalars(current_user.following_posts()).all()
+
+    return render_template("index.html", title="Home Page", form=form, posts=posts)
 
 
 @app.route("/login", methods=["GET", "POST"])
